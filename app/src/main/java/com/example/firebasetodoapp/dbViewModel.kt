@@ -26,22 +26,23 @@ class dbViewModel() : ViewModel() {
     }
 
 
-    fun pushTodoItem(item : todoItems, auth: AuthViewModel) : String{
-
+    fun pushTodoItem(item : todoItems, auth: AuthViewModel) : Boolean{
+        var status : Boolean = false
         getDbRef(auth)
-        var status: String = "";
         databaseRef.push().setValue(item).addOnCompleteListener {
             if (it.isSuccessful) {
-                status = "Successfully added";
+                Log.i("FirebaseData", "Successfully added")
+                status = true;
             } else {
-                status = "Error: ${it.exception?.message}";
+                Log.e("FirebaseData", "${it.exception?.message}")
+                status = false;
             }
         }
         return status
     }
 
 
-    fun getTodoItems(auth: AuthViewModel): ArrayList<todoItems> {
+    fun getTodoItems(auth: AuthViewModel, dataList: ArrayList<todoItems>) {
         val userDatas: ArrayList<todoItems> = ArrayList()
 
         getDbPushRef(auth)
@@ -50,10 +51,11 @@ class dbViewModel() : ViewModel() {
             override fun onDataChange(snapshot: DataSnapshot) {
                Log.i("FirebaseData", "$snapshot");
 
+                dataList.clear()
                 for (childSnapshot in snapshot.children){
                     var item = childSnapshot.getValue(todoItems::class.java)
                     Log.d("FirebaseData", "$item");
-                        userDatas.add(item!!)
+                    dataList.add(item!!)
 
                 }
                 Log.i("FirebaseData", "$userDatas");
@@ -66,6 +68,5 @@ class dbViewModel() : ViewModel() {
 
         })
 
-        return userDatas
     }
 }

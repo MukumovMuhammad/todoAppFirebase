@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.firebasetodoapp.AuthViewModel
 import com.example.firebasetodoapp.databinding.FragmentMainBinding
@@ -16,16 +18,18 @@ import com.example.firebasetodoapp.adapterTodoRv
 import com.example.firebasetodoapp.databinding.DialogTodoAddBinding
 import com.example.firebasetodoapp.dbViewModel
 import com.example.firebasetodoapp.todoItems
-
+import kotlinx.coroutines.launch
 
 
 class mainFrag : Fragment() {
 
     private lateinit var binding : FragmentMainBinding
-    private val auth : AuthViewModel by viewModels()
-    private lateinit var todoList : ArrayList<todoItems>
     private lateinit var adapter: adapterTodoRv
+
+    private val auth : AuthViewModel by viewModels()
+    private  var todoList : ArrayList<todoItems> = ArrayList<todoItems>()
     private val database : dbViewModel by viewModels();
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -41,17 +45,31 @@ class mainFrag : Fragment() {
 
 
 
-        todoList = database.getTodoItems(auth)
+
         adapter = adapterTodoRv(todoList)
         binding.todoRv.layoutManager = LinearLayoutManager(requireContext())
         binding.todoRv.adapter = adapter
+
+        lifecycleScope.launch {
+            Thread.sleep(1000);
+            database.getTodoItems(auth, todoList)
+            adapter.notifyDataSetChanged()
+        }
 
         binding.button.setOnClickListener {
             createDialog()
         }
 
+        binding.editTextSearch.addTextChangedListener {
+            val searchText = it.toString()
+
+            searchItem(searchText);
+        }
+
 
     }
+
+
 
 
 
@@ -86,15 +104,33 @@ class mainFrag : Fragment() {
         }
 
 
-        var status : String = database.pushTodoItem(item, auth)
+        var status : Boolean = database.pushTodoItem(item, auth)
 
 
-        Toast.makeText(requireContext(), "$status", Toast.LENGTH_SHORT).show()
 
-        if (status == "Successfully added"){
-            todoList.add(item)
-            adapter.notifyItemInserted(todoList.size - 1)
+
+        if (status){
+            Toast.makeText(requireContext(), "task successfully added", Toast.LENGTH_SHORT).show()
+            database.getTodoItems(auth, todoList)
+            adapter.notifyDataSetChanged()
         }
 
+    }
+
+
+
+    fun searchItem(searchText: String){
+        database.getTodoItems(auth, todoList)
+        val searchList = ArrayList<todoItems>()
+
+        Log.v("FirebaseData", "The todo List is $todoList")
+
+        for (item in todoList){
+            if (item.title?.contains(searchText) == true){
+                searchList.add(item)
+            }
+        }
+
+        adapter.updateList(searchList)
     }
 }

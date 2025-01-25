@@ -24,6 +24,12 @@ class adapterTodoRv(private val items: ArrayList<todoItems>) : RecyclerView.Adap
         holder.description.text = currentItem.description;
     }
 
+    fun updateList(searchList: ArrayList<todoItems>) {
+        items.clear()
+        items.addAll(searchList)
+        notifyDataSetChanged()
+    }
+
 
     inner class todoViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
         val title: TextView = itemView.findViewById(R.id.tv_title);
