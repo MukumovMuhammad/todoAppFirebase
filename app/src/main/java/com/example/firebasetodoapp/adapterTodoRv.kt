@@ -4,10 +4,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-class adapterTodoRv(private val items: ArrayList<todoItems>) : RecyclerView.Adapter<adapterTodoRv.todoViewHolder>() {
+class adapterTodoRv(
+    private val items: ArrayList<todoItems>,
+    private val dbViewModel: DbViewModel,
+    private val auth: AuthViewModel
+    ) : RecyclerView.Adapter<adapterTodoRv.todoViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): todoViewHolder {
@@ -22,6 +28,38 @@ class adapterTodoRv(private val items: ArrayList<todoItems>) : RecyclerView.Adap
         val currentItem = items[position];
         holder.title.text = currentItem.title;
         holder.description.text = currentItem.description;
+
+
+        holder.btn.setOnClickListener {
+            val popup = PopupMenu(holder.itemView.context, holder.btn)
+            popup.inflate(R.menu.item_options_menu)
+
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_edit -> {
+                        true
+                    }
+
+                    R.id.action_delete -> {
+                        dbViewModel.deleteTodoItem(position, auth) {isSuccessful ->
+                            if (isSuccessful){
+                                Toast.makeText(holder.itemView.context, "Successfully deleted", Toast.LENGTH_SHORT).show()
+                                notifyItemRemoved(position)
+                            }else {
+                                Toast.makeText(holder.itemView.context, "Failed to delete", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        true
+                    }
+
+                    else -> false
+                }
+
+            }
+
+            popup.show()
+        }
     }
 
     fun updateList(searchList: ArrayList<todoItems>) {
@@ -29,6 +67,8 @@ class adapterTodoRv(private val items: ArrayList<todoItems>) : RecyclerView.Adap
         items.addAll(searchList)
         notifyDataSetChanged()
     }
+
+
 
 
     inner class todoViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){

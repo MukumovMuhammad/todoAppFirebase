@@ -14,8 +14,8 @@
             android:id="@+id/action_loginFrag_to_signUpFrag"
             app:destination="@id/signUpFrag" />
         <action
-            android:id="@+id/action_loginFrag_to_mainFrag"
-            app:destination="@id/mainFrag" />
+            android:id="@+id/action_loginFrag_to_menuFrag"
+            app:destination="@id/menuFrag" />
     </fragment>
     <fragment
         android:id="@+id/signUpFrag"
@@ -23,11 +23,11 @@
         android:label="fragment_sign_up"
         tools:layout="@layout/fragment_sign_up" >
         <action
-            android:id="@+id/action_signUpFrag_to_mainFrag"
-            app:destination="@id/mainFrag" />
-        <action
             android:id="@+id/action_signUpFrag_to_loginFrag"
             app:destination="@id/loginFrag" />
+        <action
+            android:id="@+id/action_signUpFrag_to_menuFrag"
+            app:destination="@id/menuFrag" />
     </fragment>
     <fragment
         android:id="@+id/mainFrag"
@@ -35,7 +35,19 @@
         android:label="fragment_main"
         tools:layout="@layout/fragment_main" >
         <action
-            android:id="@+id/action_mainFrag_to_loginFrag"
+            android:id="@+id/action_mainFrag_to_menuFrag"
+            app:destination="@id/menuFrag" />
+    </fragment>
+    <fragment
+        android:id="@+id/menuFrag"
+        android:name="com.example.firebasetodoapp.frag.MenuFrag"
+        android:label="fragment_menu_fragment"
+        tools:layout="@layout/fragment_menu_fragment" >
+        <action
+            android:id="@+id/action_menuFrag_to_mainFrag"
+            app:destination="@id/mainFrag" />
+        <action
+            android:id="@+id/action_menuFrag_to_loginFrag"
             app:destination="@id/loginFrag" />
     </fragment>
 </navigation>

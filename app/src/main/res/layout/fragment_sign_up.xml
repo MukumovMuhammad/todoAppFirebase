@@ -26,15 +26,6 @@
             android:layout_marginBottom="24dp" />
 
         <!-- Username Input -->
-        <EditText
-            android:id="@+id/et_username"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Username"
-            android:inputType="text"
-            android:padding="12dp"
-            android:background="@android:drawable/editbox_background"
-            android:layout_marginBottom="16dp" />
 
         <!-- Email Input -->
         <EditText
@@ -59,15 +50,6 @@
             android:layout_marginBottom="16dp" />
 
         <!-- Confirm Password Input -->
-        <EditText
-            android:id="@+id/et_confirm_password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Confirm Password"
-            android:inputType="textPassword"
-            android:padding="12dp"
-            android:background="@android:drawable/editbox_background"
-            android:layout_marginBottom="24dp" />
 
         <!-- Sign Up Button -->
         <Button
@@ -85,5 +67,14 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Already have an account ?" />
+
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text=""
+            android:textColor="#B83030" />
     </LinearLayout>
 </FrameLayout>

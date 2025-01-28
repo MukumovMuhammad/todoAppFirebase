@@ -1,18 +1,14 @@
 package com.example.firebasetodoapp
 
 import android.util.Log
-import android.view.View
-import android.widget.Toast
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import kotlinx.coroutines.flow.MutableStateFlow
 
-class dbViewModel() : ViewModel() {
+class DbViewModel() : ViewModel() {
     private var firebaseDatabase: FirebaseDatabase = FirebaseDatabase.getInstance()
     private lateinit var databaseRef: DatabaseReference
 
@@ -42,9 +38,24 @@ class dbViewModel() : ViewModel() {
     }
 
 
+    fun deleteTodoItem(id: Int, auth: AuthViewModel, callback: (Boolean) -> Unit) {
+        getDbRef(auth)
+        var removeRef = databaseRef.child(id.toString())
+        removeRef.removeValue().addOnCompleteListener {
+            if (it.isSuccessful) {
+                Log.i("FirebaseData", "Successfully deleted")
+                callback(true);
+            } else {
+               callback(false);
+            }
+        }
+    }
+
+
+
+
     fun getTodoItems(auth: AuthViewModel, dataList: ArrayList<todoItems>) {
         val userDatas: ArrayList<todoItems> = ArrayList()
-
         getDbPushRef(auth)
 
         databaseRef.addValueEventListener(object : ValueEventListener{

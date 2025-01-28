@@ -6,12 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.firebasetodoapp.AuthState
 import com.example.firebasetodoapp.AuthViewModel
 import com.example.firebasetodoapp.R
 import com.example.firebasetodoapp.databinding.FragmentLoginBinding
+import kotlinx.coroutines.launch
 
 
 class loginFrag : Fragment() {
@@ -31,7 +33,16 @@ class loginFrag : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (auth.authState.value == AuthState.Authenticated){
-            findNavController().navigate(R.id.action_loginFrag_to_mainFrag)
+            findNavController().navigate(R.id.action_loginFrag_to_menuFrag)
+        }
+
+
+        binding.etUsername.setOnClickListener {
+            binding.tvError.text = "";
+        }
+
+        binding.etPassword.setOnClickListener {
+            binding.tvError.text = "";
         }
 
         binding.btnLogin.setOnClickListener {
@@ -39,9 +50,18 @@ class loginFrag : Fragment() {
             val password = binding.etPassword.text.toString()
             auth.login(email, password)
 
-            if (auth.authState.value == AuthState.Authenticated){
-                findNavController().navigate(R.id.action_loginFrag_to_mainFrag)
+            lifecycleScope.launch {
+                Thread.sleep(2000)
+                if (auth.authState.value == AuthState.Authenticated){
+                    findNavController().navigate(R.id.action_loginFrag_to_menuFrag)
+                }
+                else if (auth.authState.value is AuthState.Error){
+                    val errorMessage = (auth.authState.value as AuthState.Error).message
+                    binding.tvError.text = errorMessage
+                }
+
             }
+
 
         }
 

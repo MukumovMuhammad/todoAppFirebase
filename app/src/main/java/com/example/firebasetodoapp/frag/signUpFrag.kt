@@ -6,11 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.example.firebasetodoapp.AuthState
 import com.example.firebasetodoapp.AuthViewModel
 import com.example.firebasetodoapp.R
 import com.example.firebasetodoapp.databinding.FragmentSignUpBinding
+import kotlinx.coroutines.launch
 
 class signUpFrag : Fragment() {
 
@@ -30,13 +32,31 @@ class signUpFrag : Fragment() {
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        binding.etEmail.setOnClickListener{
+            binding.tvError.text = "";
+        }
+
+        binding.etPassword.setOnClickListener{
+            binding.tvError.text = "";
+        }
+
         binding.btnSignUp.setOnClickListener {
+
             val email = binding.etEmail.text.toString()
             val password = binding.etPassword.text.toString()
             auth.signUp(email, password)
 
-            if (auth.authState.value == AuthState.Authenticated){
-                it.findNavController().navigate(R.id.action_signUpFrag_to_mainFrag)
+
+            lifecycleScope.launch {
+                Thread.sleep(1000)
+                if (auth.authState.value == AuthState.Authenticated){
+                    it.findNavController().navigate(R.id.action_signUpFrag_to_menuFrag)
+                }
+                else if (auth.authState.value is AuthState.Error){
+                    val errorMessage = (auth.authState.value as AuthState.Error).message
+                    binding.tvError.text = errorMessage
+                }
             }
         }
 

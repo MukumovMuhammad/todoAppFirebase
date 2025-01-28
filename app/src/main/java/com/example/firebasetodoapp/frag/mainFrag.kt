@@ -11,12 +11,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.firebasetodoapp.AuthViewModel
+import com.example.firebasetodoapp.R
 import com.example.firebasetodoapp.databinding.FragmentMainBinding
 import com.example.firebasetodoapp.adapterTodoRv
 import com.example.firebasetodoapp.databinding.DialogTodoAddBinding
-import com.example.firebasetodoapp.dbViewModel
+import com.example.firebasetodoapp.DbViewModel
 import com.example.firebasetodoapp.todoItems
 import kotlinx.coroutines.launch
 
@@ -28,7 +30,7 @@ class mainFrag : Fragment() {
 
     private val auth : AuthViewModel by viewModels()
     private  var todoList : ArrayList<todoItems> = ArrayList<todoItems>()
-    private val database : dbViewModel by viewModels();
+    private val database : DbViewModel by viewModels();
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,7 +48,7 @@ class mainFrag : Fragment() {
 
 
 
-        adapter = adapterTodoRv(todoList)
+        adapter = adapterTodoRv(todoList, database, auth)
         binding.todoRv.layoutManager = LinearLayoutManager(requireContext())
         binding.todoRv.adapter = adapter
 
@@ -67,6 +69,11 @@ class mainFrag : Fragment() {
         }
 
 
+        binding.imcBack.setOnClickListener{
+            findNavController().navigate(R.id.action_mainFrag_to_menuFrag)
+        }
+
+
     }
 
 
@@ -83,7 +90,7 @@ class mainFrag : Fragment() {
             .setPositiveButton("Add") {dialog,_ ->
                 val title = bindingDialog.editTextTitle.text.toString()
                 val description = bindingDialog.editTextDescription.text.toString()
-                val item = todoItems(title, description, false)
+                val item = todoItems(todoList.size, title, description, false)
                 addTodoItem(item)
                 dialog.dismiss()
             }
