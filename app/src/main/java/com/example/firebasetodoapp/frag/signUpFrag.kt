@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.example.firebasetodoapp.AuthState
 import com.example.firebasetodoapp.AuthViewModel
 import com.example.firebasetodoapp.R
@@ -41,6 +42,21 @@ class signUpFrag : Fragment() {
             binding.tvError.text = "";
         }
 
+
+        auth.authState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is AuthState.Authenticated -> {
+                    findNavController().navigate(R.id.action_signUpFrag_to_menuFrag)
+                }
+
+                is AuthState.Error -> {
+                    binding.tvError.text = state.message
+                }
+
+                else -> {}
+            }
+        }
+
         binding.btnSignUp.setOnClickListener {
 
             val email = binding.etEmail.text.toString()
@@ -48,16 +64,6 @@ class signUpFrag : Fragment() {
             auth.signUp(email, password)
 
 
-            lifecycleScope.launch {
-                Thread.sleep(1000)
-                if (auth.authState.value == AuthState.Authenticated){
-                    it.findNavController().navigate(R.id.action_signUpFrag_to_menuFrag)
-                }
-                else if (auth.authState.value is AuthState.Error){
-                    val errorMessage = (auth.authState.value as AuthState.Error).message
-                    binding.tvError.text = errorMessage
-                }
-            }
         }
 
         binding.loginTxt.setOnClickListener {

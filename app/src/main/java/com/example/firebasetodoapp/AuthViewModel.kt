@@ -1,18 +1,19 @@
 package com.example.firebasetodoapp
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class  AuthViewModel : ViewModel() {
+class  AuthViewModel: ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
 
-    private val _authState = MutableStateFlow<AuthState>(AuthState.Unauthenticated)
-    val authState: MutableStateFlow<AuthState> = _authState
+    private val _authState = MutableLiveData<AuthState>(AuthState.Unauthenticated)
+    val authState: MutableLiveData<AuthState> = _authState
 
     init {
         checkAuthStatus()

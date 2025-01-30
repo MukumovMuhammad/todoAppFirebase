@@ -32,8 +32,22 @@ class loginFrag : Fragment() {
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (auth.authState.value == AuthState.Authenticated){
-            findNavController().navigate(R.id.action_loginFrag_to_menuFrag)
+
+        super.onViewCreated(view, savedInstanceState)
+
+
+        auth.authState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is AuthState.Authenticated -> {
+                    findNavController().navigate(R.id.action_loginFrag_to_menuFrag)
+                }
+
+                is AuthState.Error -> {
+                    binding.tvError.text = state.message
+                }
+
+                else -> {}
+            }
         }
 
 

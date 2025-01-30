@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.firebasetodoapp.AuthViewModel
@@ -20,22 +19,22 @@ import com.example.firebasetodoapp.adapterTodoRv
 import com.example.firebasetodoapp.databinding.DialogTodoAddBinding
 import com.example.firebasetodoapp.DbViewModel
 import com.example.firebasetodoapp.todoItems
-import kotlinx.coroutines.launch
 
 
-class mainFrag : Fragment() {
+class mainFrag : Fragment(), adapterTodoRv.OnTodoItemClickListener {
 
     private lateinit var binding : FragmentMainBinding
     private lateinit var adapter: adapterTodoRv
 
     private val auth : AuthViewModel by viewModels()
-    private  var todoList : ArrayList<todoItems> = ArrayList<todoItems>()
+    private lateinit var todoList : List<todoItems>
     private val database : DbViewModel by viewModels();
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         // Inflate the layout for this fragment
         binding = FragmentMainBinding.inflate(inflater, container, false);
         return binding.root
@@ -45,21 +44,32 @@ class mainFrag : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        database.todoList.observe(viewLifecycleOwner){ items ->
+            Log.i("FirebaseData", "todoList data changed! The item is $items");
+            todoList = items
+            adapter.updateList(items)
+        }
 
-
-
-        adapter = adapterTodoRv(todoList, database, auth)
+        todoList = database.todoList.value ?: emptyList()
+        adapter = adapterTodoRv(todoList, database, auth, this)
         binding.todoRv.layoutManager = LinearLayoutManager(requireContext())
         binding.todoRv.adapter = adapter
 
-        lifecycleScope.launch {
-            Thread.sleep(1000);
-            database.getTodoItems(auth, todoList)
-            adapter.notifyDataSetChanged()
-        }
+        database.getTodoItems(auth)
+
+//        lifecycleScope.launch {
+//            Thread.sleep(1000);
+//            database.getTodoItems(auth, todoList)
+//            adapter.notifyDataSetChanged()
+//        }
+
+
+
+
+
 
         binding.button.setOnClickListener {
-            createDialog()
+            createAddDialog()
         }
 
         binding.editTextSearch.addTextChangedListener {
@@ -81,7 +91,7 @@ class mainFrag : Fragment() {
 
 
 
-    fun createDialog(){
+    fun createAddDialog(){
         val builder = AlertDialog.Builder(requireContext())
         val bindingDialog = DialogTodoAddBinding.inflate(layoutInflater)
 
@@ -90,7 +100,7 @@ class mainFrag : Fragment() {
             .setPositiveButton("Add") {dialog,_ ->
                 val title = bindingDialog.editTextTitle.text.toString()
                 val description = bindingDialog.editTextDescription.text.toString()
-                val item = todoItems(todoList.size, title, description, false)
+                val item = todoItems(todoList.size.toString(), title, description, false)
                 addTodoItem(item)
                 dialog.dismiss()
             }
@@ -100,6 +110,7 @@ class mainFrag : Fragment() {
 
         builder.create().show()
     }
+
 
 
 
@@ -118,7 +129,7 @@ class mainFrag : Fragment() {
 
         if (status){
             Toast.makeText(requireContext(), "task successfully added", Toast.LENGTH_SHORT).show()
-            database.getTodoItems(auth, todoList)
+            database.getTodoItems(auth)
             adapter.notifyDataSetChanged()
         }
 
@@ -127,7 +138,7 @@ class mainFrag : Fragment() {
 
 
     fun searchItem(searchText: String){
-        database.getTodoItems(auth, todoList)
+        database.getTodoItems(auth)
         val searchList = ArrayList<todoItems>()
 
         Log.v("FirebaseData", "The todo List is $todoList")
@@ -139,5 +150,56 @@ class mainFrag : Fragment() {
         }
 
         adapter.updateList(searchList)
+    }
+
+    override fun onDeleteClicked(position: Int, id: String) {
+        database.deleteTodoItem(id, auth) { isSuccessful ->
+            if (isSuccessful){
+                Toast.makeText(requireContext(), "Successfully deleted", Toast.LENGTH_SHORT).show()
+                adapter.notifyItemRemoved(position)
+            }else {
+                Toast.makeText(requireContext(), "Failed to delete", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onEditClicked(position: Int, oldItem: todoItems) {
+        val builder = AlertDialog.Builder(requireContext())
+        val bindingDialog = DialogTodoAddBinding.inflate(layoutInflater)
+
+        bindingDialog.editTextTitle.setText(oldItem.title)
+        bindingDialog.editTextDescription.setText(oldItem.description)
+
+
+        builder.setTitle("Edit todo ${oldItem.title}")
+            .setView(bindingDialog.root)
+            .setPositiveButton("Edit") {dialog,_ ->
+                val title = bindingDialog.editTextTitle.text.toString()
+                val description = bindingDialog.editTextDescription.text.toString()
+                val newItem = todoItems(todoList.size.toString(), title, description, false)
+                database.editTodoItem(oldItem ,newItem, auth) { isSuccessful ->
+                    if (isSuccessful){
+                        Toast.makeText(requireContext(), "Successfully updated", Toast.LENGTH_SHORT).show()
+                        adapter.notifyItemChanged(position)
+                    }
+                    else {
+                        Toast.makeText(requireContext(), "Failed to update", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel"){dialog,_ ->
+                dialog.dismiss()
+            }
+
+        builder.create().show()
+    }
+
+    override fun ItemClicked(item: todoItems) {
+        database.todoItemIsClicked(item, auth) { isSuccessful ->
+          if(!isSuccessful){
+              Toast.makeText(requireContext(), "Failed to update", Toast.LENGTH_SHORT).show()
+          }
+        }
     }
 }
